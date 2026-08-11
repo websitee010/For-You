@@ -1072,6 +1072,21 @@ a, button, input, textarea, select, [role="button"]{
     margin-top: 16px;
     line-height: 1.5;
   }
+  .next-song-btn{
+    display: inline-block;
+    margin-top: 16px;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 30px;
+    background: var(--gold);
+    color: var(--maroon-dark);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.25s ease, transform 0.25s ease;
+  }
+  .next-song-btn:hover{ background: var(--gold-light); transform: translateY(-2px); }
 
   /* ---------- FOOTER ---------- */
   footer{
@@ -1676,15 +1691,17 @@ Always Yours,<br>
 
     <div class="player-card reveal" id="playerCard">
       <div class="disc"></div>
-      <h3>[Teri Ore]</h3>
-      <p class="song-sub">— the one that reminds us of us</p>
+      <h3 id="songTitle">[Teri Ore]</h3>
+      <p class="song-sub" id="songSub">— the one that reminds us of us</p>
       <!--
-        Drop your mp3 file next to this index.html and update the src below,
-        e.g. src="our-song.mp3"
+        Add as many songs as you like in the SONGS array inside the <script>
+        below. Just drop the mp3 files next to this index.html and set the
+        "src" for each one, e.g. src: "our-song.mp3"
       -->
       <audio id="audioPlayer" controls>
-        <source src="music/romantic.mp3" type="audio/mpeg">
+        <source id="audioSource" src="music/romantic.mp3" type="audio/mpeg">
       </audio>
+      <button type="button" id="nextSongBtn" class="next-song-btn">Next Song ⏭</button>
       <p class="music-note">This song is especially dedicated to you. ❤️</p>
     </div>
 
@@ -1859,12 +1876,47 @@ function openLetter(){
     }, 1300); // envelope animation khatam hone ka wait
   }
 
-  // ---------------- MUSIC DISC SPIN ON PLAY ----------------
+  // ---------------- MUSIC PLAYLIST ----------------
+  // Add as many songs as you want here. Drop the mp3 file next to this
+  // index.html and set "src" to that filename.
+  const SONGS = [
+    { title: "[Teri Ore]", sub: "— the one that reminds us of us", src: "music/romantic.mp3" },
+    { title: "[Jaan Ban Gaye]", sub: "— the one that express my feelings for you", src: "music/romantic2.mp3" }
+  ];
+
+  let currentSongIndex = 0;
+
   const audio = document.getElementById('audioPlayer');
+  const audioSource = document.getElementById('audioSource');
+  const songTitle = document.getElementById('songTitle');
+  const songSub = document.getElementById('songSub');
+  const nextSongBtn = document.getElementById('nextSongBtn');
   const playerCard = document.getElementById('playerCard');
+
+  function loadSong(index, autoplay){
+    currentSongIndex = (index + SONGS.length) % SONGS.length; // wrap around
+    const song = SONGS[currentSongIndex];
+    songTitle.textContent = song.title;
+    songSub.textContent = song.sub;
+    audioSource.src = song.src;
+    audio.load();
+    if(autoplay){
+      audio.play().catch(err => console.log("Autoplay issue:", err));
+    }
+  }
+
+  nextSongBtn.addEventListener('click', ()=>{
+    loadSong(currentSongIndex + 1, true);
+  });
+
+  // ---------------- MUSIC DISC SPIN ON PLAY ----------------
   audio.addEventListener('play', ()=> playerCard.classList.add('playing'));
   audio.addEventListener('pause', ()=> playerCard.classList.remove('playing'));
-  audio.addEventListener('ended', ()=> playerCard.classList.remove('playing'));
+  audio.addEventListener('ended', ()=>{
+    playerCard.classList.remove('playing');
+    // song khatam hote hi automatically next song bajao
+    loadSong(currentSongIndex + 1, true);
+  });
 
   /* ===================== 100 REASONS ===================== */
 
